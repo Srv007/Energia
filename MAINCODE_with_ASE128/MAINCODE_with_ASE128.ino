@@ -6,13 +6,13 @@
 #define rfid_TX P6_0
 
 //Side button Configuration//
-#define button1 P7_0
+#define button1 P4_3
 #define button2 P4_0
 #define button3 P8_2
-#define lock_button P2_3
+#define lock_button P4_0
 
 //vibration pin Configuration
-#define vibraton_pin P4_3
+#define vibraton_pin P7_0
 
 //uart configuration for rf-id
 SoftwareSerial rfid(rfid_RX,rfid_TX);
@@ -157,7 +157,7 @@ int keypress_int() {
       digitalWrite(column[x], LOW);
       for (int y=0; y<4; y++) {
         if (!(digitalRead(row[y]))) {
-          digitalWrite(vibraton_pin,HIGH);
+          digitalWrite(vibraton_pin,LOW);
           keypress =Keypad_int[x] [y];
           while(!(digitalRead(row[y])));
           if(keypress!='z') goto out;
@@ -185,7 +185,7 @@ char keypress() {
       digitalWrite(column[x], LOW);
       for (y=0; y<4; y++) {
         if (!(digitalRead(row[y]))) {
-          digitalWrite(vibraton_pin,HIGH);
+          digitalWrite(vibraton_pin,LOW);
           keypress =Keypad[x] [y];
           if(keypress!='z') goto out;
         }
@@ -209,7 +209,7 @@ char key(){
   }
   keypress='z';
   while (1)  {
-    //if (digitalRead(button1)==LOW) function1();
+    if (digitalRead(button1)==LOW) function1();
     if (digitalRead(button2)==LOW) function2();
     if (digitalRead(button3)==HIGH) function3();
     //if (digitalRead(lock_button)==LOW) {
@@ -220,7 +220,7 @@ char key(){
       digitalWrite(column[x], LOW);
       for (y=0; y<4; y++) {
         if (!(digitalRead(row[y]))) {
-          digitalWrite(vibraton_pin,HIGH);
+          digitalWrite(vibraton_pin,LOW);
           keypress =Keypad[x] [y];
           while(!(digitalRead(row[y])));
           if(keypress!='z') goto out;
@@ -243,15 +243,15 @@ char keylock() {
   }
   keypress='z';
   while (1)  {
-    if(digitalRead(lock_button)==LOW) {
-      device_lock();
-      break;
+     if(digitalRead(lock_button)==LOW) {
+     device_lock();
+     break;
     }
     for (x=0; x<4; x++)  {
       digitalWrite(column[x], LOW);
       for (y=0; y<4; y++) {
         if (!(digitalRead(row[y]))) {
-          digitalWrite(vibraton_pin,HIGH);
+          digitalWrite(vibraton_pin,LOW);
           keypress =Keypad[x] [y];
           while(!(digitalRead(row[y])));
           if(keypress!='z') goto out;
@@ -734,6 +734,8 @@ void query_smart_post(String query_url, String query_statement,String parameter,
 
 void pnr_post_result()
 {
+  Serial1.flush();
+  Serial1.setTimeout(5000);
   lcd.clear();
   Serial1.flush();
   i=0;
@@ -750,18 +752,15 @@ void pnr_post_result()
         Serial1.flush();
         lcd.setCursor(0,i);
         Serial1.readBytesUntil('*',data[i], 20);//
-        lcd.print(data[i]);
+        for(k=0;k<20;k++){
+          pnrdata[current_pnr_no][i][k]=data[i][k];
+          lcd.print(pnrdata[current_pnr_no][i][k]);
+        }
         i++;
       }
       if (a=='$') break;
     }
   }
-  for(i=0;k<3;i++){
-    for(k=0;k<20;k++){
-      pnrdata[current_pnr_no][i][k]=data[i][k];
-    }
-  }
-  current_pnr_no++;
   delay(1000);
   Serial1.println("");
   lcd.setCursor(19,3);
@@ -892,7 +891,7 @@ void smart_card_number(){
 void settings(void){
   i=0;
   char setting_menu[][20]={
-    "1-BACKLIGHT","2-AUTOMATIC LOCK","3-VIBRATION","4-Time","menu5","menu6"                    };
+    "1-BACKLIGHT","2-AUTOMATIC LOCK","3-VIBRATION","4-Time","menu5","menu6"                  };
 setting_menu:
   Serial1.flush();
   if(i<0) i=5;
@@ -1334,7 +1333,7 @@ vibration_settings:
 void time_settings(void){
   i=0;
   char time_settings_menu[][20]={
-    "1-Set Current Time","2-Set Alarm","3-Cancel Alarm","4-Request For Time"                              };
+    "1-Set Current Time","2-Set Alarm","3-Cancel Alarm","4-Request For Time"                            };
 time_settings:
   Serial1.flush();
   if(i<2){
@@ -1593,7 +1592,7 @@ function1:
 void display_uptime(){
   if(automatic_lock_status==true) get_lock_time();
   lcd.clear();
-  lcd.setCursor(0,3); 
+    lcd.setCursor(0,3); 
   lcd.write(2); 
   lcd.write(2);  
   lcd.write(2);  
@@ -1655,7 +1654,7 @@ void display_uptime(){
 }
 
 void internal_temp(void){
-  lcd.setCursor(0,3); 
+      lcd.setCursor(0,3); 
   lcd.write(2); 
   lcd.write(2);  
   lcd.write(2);  
@@ -1693,10 +1692,10 @@ void function2(void){
   delay(500);
   i=0;
 function2:  
-  if (digitalRead(button2)==LOW){
-    delay(1000);
-    if (digitalRead(button2)==LOW) device_lock();
-  }
+ if (digitalRead(button2)==LOW){
+   delay(1000);
+   if (digitalRead(button2)==LOW) device_lock();
+ }
   print_menu("1-Device Lock","2-PNR History","3-TTE History","");//verver
   lcd.setCursor(0,3); 
   lcd.write(2); 
@@ -1767,7 +1766,9 @@ out:;
   if(j<0) j=0;
   for(i=0;i<4;i++){
     lcd.setCursor(0,i);
-      lcd.print(pnrdata[i+j*4][0]);
+    for(k=0;k<20;k++){
+      lcd.print(pnrdata[i+j*4][0][k]);
+    }
   }
   a=key();
   if(a=='A'){
@@ -1783,7 +1784,9 @@ out:;
   case '1':
     for(i=0;i<4;i++){
       lcd.setCursor(0,i);
-        lcd.print(pnrdata[0+j*4][i]);
+      for(k=0;k<20;k++){
+        lcd.print(pnrdata[0+j*4][i][k]);
+      }
     }
     w=key();
     break;
@@ -1791,15 +1794,18 @@ out:;
   case '2':
     for(i=0;i<4;i++){
       lcd.setCursor(0,i);
-        lcd.print(pnrdata[1+j*4][i]);
+      for(k=0;k<20;k++){
+        lcd.print(pnrdata[1+j*4][i][k]);
+      }
     }
     w=key();
     break;
 
   case '3':
     for(i=0;i<4;i++){
-      lcd.setCursor(0,i);
-        lcd.print(pnrdata[2+j*4][i]);
+      for(k=0;k<20;k++){
+        lcd.print(pnrdata[2+j*4][i][k]);
+      }
     }
     w=key();
     break;
@@ -1807,7 +1813,9 @@ out:;
   case '4':
     for(i=0;i<4;i++){
       lcd.setCursor(0,i);
-        lcd.print(pnrdata[3+j*4][i]);
+      for(k=0;k<20;k++){
+        lcd.print(pnrdata[3+j*4][i][k]);
+      }
     }
     w=key();
     break; 
@@ -1832,7 +1840,7 @@ out:;
   if(j>10) j=9;
   for(i=0;i<4;i++){
     lcd.setCursor(0,i);
-    lcd.print(ttedata[1]);
+    lcd.print(ttedata[i+j*4]);
   }
   a=key();
   if(a=='A'){
@@ -1856,7 +1864,7 @@ out:;
 
 void function3(void){
   if(automatic_lock_status==true) get_lock_time();
-  print_menu("1-MAKE CONNECTION","2-DEVICE VERIFICATION","3-TURN OFF DEVICE","");
+  print_menu("1-MAKE CONNECTION","2-DEVICE VERIFICATION","3-function*","4-TURN OFF DEVICE");
   a = keylock();
   switch(a){
   case '1':
@@ -1904,7 +1912,6 @@ void connect(){
   delay(1000);
   send_cmd("AT+CIICR","OK",5000);
   lcd.print("*");
-  delay(3000);
   CIICR();
   delay(1000);
   send_cmd("AT+CIPHEAD=1","OK",5000);
@@ -1961,25 +1968,21 @@ void setup(){
   for (y=0; y<4; y++)  {
     pinMode(row[y], INPUT_PULLUP);
   } 
-  backlight_status=false;
-  analogWrite(P1_4,100);
-  /*
+/*
   // connect();
-   //
-  main_lock();
-  lcd.clear();
-  get_tte_number();
-  tte_code[12]='\0';
-  lcd.setCursor(0,3);
-  lcd.print("Press to continue...");
-  key();*/
+  //*/
+    main_lock();
+   lcd.clear();
+   get_tte_number();
+   tte_code[12]='\0';
+   lcd.setCursor(0,3);
+   lcd.print("Press to continue...");
+   key();
   lcd.createChar(2, black);
   lcd.createChar(3, arrow);
+  backlight_status==true;
 }
 void loop(){
-  while(1){
-    Serial1.print("asdas");
-  }
   i=0;
 main_menu:
   if(i<0) i=5;
@@ -2031,13 +2034,12 @@ main_menu:
     switch(i+1){
     case 1:
       pnr_query();
-      post_result();
-      //pnr_post_result();
+      pnr_post_result();
       break;
 
     case 2:
       device_verification(posturl,"CURRENT ASSIGNMENT:","assignment","75");
-      pnr_post_result();
+      post_result();
       loop();
       break;
 
@@ -2052,11 +2054,11 @@ main_menu:
       break;
 
     case 5:
-      //tte_login_logout();
+    //tte_login_logout();
       break;
 
     case 6:
-      settings();
+    settings();
       break;
     }
     break;
@@ -2076,7 +2078,6 @@ main_menu:
     goto main_menu;
   }
 }
-
 
 
 

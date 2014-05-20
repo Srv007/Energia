@@ -208,7 +208,7 @@ char key(){
   }
   keypress='z';
   while (1)  {
-    if (digitalRead(button1)==LOW) function1();
+   // if (digitalRead(button1)==LOW) function1();
     if (digitalRead(button2)==LOW) function2();
     if (digitalRead(button3)==HIGH) function3();
     if (digitalRead(lock_button)==LOW) {
@@ -283,7 +283,7 @@ String smart_card(void){
 }
 
 //main lock
-int main_lock(void){
+/*int main_lock(void){
   String user_enter_password;
   String code=String(12);
   String password=("1111");
@@ -346,8 +346,8 @@ int main_lock(void){
   digitalWrite(vibraton_pin,LOW);
   lcd.noBlink();
   return 0;
-}
-//lock function to call any where
+}*/
+//lock function to call any where saurav
 int device_lock(void){
   if(automatic_lock_status==true) get_lock_time();
   lcd.clear();
@@ -355,10 +355,10 @@ int device_lock(void){
   delay(500);
   temp_backlight_status=backlight_status;
   backlight_status=false;
-  delay(500);
   lcd.clear();
   analogWrite(P1_4,0);
-  while(digitalRead(lock_button)==LOW);
+  delay(500);
+  while(digitalRead(lock_button)==HIGH);
   backlight_status=temp_backlight_status;
   analogWrite(P1_4,244);
   String user_enter_password;
@@ -367,7 +367,7 @@ int device_lock(void){
   String code=String(12);
   delay(500);
  print_menu("        LOCK    ","1-Manual","2-ID CARD");
-  a=keylock();
+  a=key();
   switch(a){
   case '1':
     lcd.clear();
@@ -380,6 +380,7 @@ int device_lock(void){
     for  (i=0;i<4;i++){
       a = keylock();
       lcd.print("*");
+      String id_card="4E0/0707BD590";
       user_enter_password.concat(a);	
     }
     lcd.noBlink();
@@ -763,7 +764,6 @@ void pnr_post_result()
   send_cmd("AT+CIPCLOSE","CLOSE OK",5000);
   current_pnr_no++;
   key();
-  delay(500);
   loop();
 }
 
